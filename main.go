@@ -39,6 +39,10 @@ func main() {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
+	if (*host == "") {
+		host = os.Getenv("HOST") + " " + os.Getenv("PORT")
+	}
+
 	log.Printf("Starting proxy for '%v' on %v\n", serverURL.String(), *host)
 	var hasher Hasher
 	if *cHasher != "" {
