@@ -18,6 +18,7 @@ var (
 	host       = flag.String("host", "localhost:6005", "Host/port on which to bind")
 	cHasher    = flag.String("hasher", "", "Custom hasher program for all requests (e.g. python ./hasher.py)")
 	verbose    = flag.Bool("verbose", false, "Turn on verbose logging")
+	memoryOnly = flag.Bool("memory", false, "Turn on in memory only mode")
 )
 
 func main() {
@@ -45,7 +46,7 @@ func main() {
 	} else {
 		hasher = DefaultHasher{}
 	}
-	cacher := NewDiskCacher(*dataDir)
+	cacher := NewDiskCacher(*dataDir, *memoryOnly)
 	cacher.SeedCache()
 	mux := http.NewServeMux()
 	mux.Handle("/_seed", PreseedHandler(cacher, hasher))

@@ -62,21 +62,30 @@ type DiskCacher struct {
 	specPath string
 	mutex    *sync.RWMutex
 	FileSystem
+	memory 	 bool
 }
 
 // NewDiskCacher creates a new disk cacher for a given data directory.
-func NewDiskCacher(dataDir string) DiskCacher {
+func NewDiskCacher(dataDir string, memory ...bool) DiskCacher {
+	var memoryOnly bool
+	if (len(memory) > 0) {
+		memoryOnly = memory[0]
+	}
 	return DiskCacher{
 		cache:      make(map[string]*CachedResponse),
 		dataDir:    dataDir,
 		specPath:   path.Join(dataDir, "spec.json"),
 		mutex:      new(sync.RWMutex),
 		FileSystem: DefaultFileSystem{},
+		memory: memoryOnly,
 	}
 }
 
 // SeedCache populates the DiskCacher with entries from disk.
 func (c *DiskCacher) SeedCache() {
+	if (c.memory) {
+		return;
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -128,6 +137,7 @@ func (c DiskCacher) Put(key string, resp *httptest.ResponseRecorder) *CachedResp
 	if skipDisk {
 		resp.Header().Del("_chameleon-seeded-skip-disk")
 	}
+	skipDisk = skipDisk || c.memory
 
 	specHeaders := make(map[string]string)
 	for k, v := range resp.Header() {
